@@ -4,7 +4,7 @@ defmodule FinTex.Mixfile do
   def project do
     [
       app: :fintex,
-      version: "0.3.2",
+      version: "0.3.3",
       name: "FinTex",
       source_url: "https://github.com/my-flow/fintex",
       homepage_url: "http://hexdocs.pm/fintex",
@@ -29,7 +29,7 @@ defmodule FinTex.Mixfile do
       {:luhn, "~> 0.3.2"},
       {:vex, "~> 0.8.0"},
       {:xml_builder, "~> 2.1.1"},
-      {:mt940, git: "git@github.com:n0isiv/mt940.git", tag: "1.1.4"}
+      {:mt940, git: "https://github.com/n0isiv/mt940.git", tag: "1.1.4"}
     ]
   end
 
