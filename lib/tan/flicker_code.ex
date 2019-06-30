@@ -21,10 +21,10 @@ defmodule FinTex.Tan.FlickerCode do
   @lc_length_hhd13 2
 
   @type t :: %__MODULE__{
-    lc: String.t,
-    start_code: StartCode.t,
-    data_elements: [DataElement.t]
-  }
+          lc: String.t(),
+          start_code: StartCode.t(),
+          data_elements: [DataElement.t()]
+        }
 
   defstruct [
     :lc,
@@ -32,14 +32,14 @@ defmodule FinTex.Tan.FlickerCode do
     :data_elements
   ]
 
-
   def new(code, version \\ :hhd14) when is_binary(code) and is_atom(version) do
     c = code |> clean
 
-    len = case version do
-      :hhd14 -> @lc_length_hhd14
-      :hhd13 -> @lc_length_hhd13
-    end
+    len =
+      case version do
+        :hhd14 -> @lc_length_hhd14
+        :hhd13 -> @lc_length_hhd13
+      end
 
     {lc, c} = c |> String.split_at(len)
     c_len = String.length(c)
@@ -51,13 +51,11 @@ defmodule FinTex.Tan.FlickerCode do
     end
   end
 
-
-  @spec render(t) :: String.t
+  @spec render(t) :: String.t()
   def render(module) do
     payload = create_payload(module)
     payload <> luhn(module) <> xor(payload)
   end
-
 
   defp do_parse(code, lc) do
     {start_code, code} = StartCode.new(code)
@@ -72,48 +70,55 @@ defmodule FinTex.Tan.FlickerCode do
     }
   end
 
-
   defp clean(code) when is_binary(code) do
-    code = code
-    |> String.replace(" ", "")
-    |> String.trim
+    code =
+      code
+      |> String.replace(" ", "")
+      |> String.trim()
 
     case ~r/.*CHLGUC\d{4}(.*)CHLGTEXT.*/ |> Regex.run(code) do
-      nil     -> code
+      nil -> code
       matches -> "0" <> (matches |> Enum.at(1))
     end
   end
 
+  @spec create_payload(t) :: String.t()
+  defp create_payload(%{
+         start_code: %{control_bytes: control_bytes} = start_code,
+         data_elements: data_elements
+       }) do
+    payload =
+      StartCode.render_length(start_code) <>
+        (control_bytes |> Enum.map(&to_hex/1) |> Enum.join()) <>
+        StartCode.render_data(start_code)
 
-  @spec create_payload(t) :: String.t
-  defp create_payload(%{start_code: %{control_bytes: control_bytes} = start_code, data_elements: data_elements}) do
-    payload = StartCode.render_length(start_code) <>
-    (control_bytes |> Enum.map(&to_hex/1) |> Enum.join) <>
-    StartCode.render_data(start_code)
+    append =
+      for data_element <- data_elements,
+          length <- [DataElement.render_length(data_element, start_code.version)],
+          data <- [DataElement.render_data(data_element)] do
+        length <> data
+      end
 
-    append = for data_element <- data_elements,
-                 length <- [DataElement.render_length(data_element, start_code.version)],
-                 data <- [DataElement.render_data(data_element)]
-             do
-              length <> data
-    end
-    append = append |> Enum.join
+    append = append |> Enum.join()
 
     payload = payload <> append
-    lc = payload |> String.length |> Kernel.+(2) |> div(2) |> to_hex(2)
+    lc = payload |> String.length() |> Kernel.+(2) |> div(2) |> to_hex(2)
     lc <> payload
   end
 
-
-  defp luhn(%{start_code: %{control_bytes: control_bytes} = start_code, data_elements: data_elements}) do
-    luhnsum = [
-      StartCode.render_data(start_code),
-      control_bytes |> Enum.map(&to_hex/1),
-      data_elements |> Enum.map(&DataElement.render_data/1)
-    ]
-    |> Enum.join
-    |> String.reverse
-    |> luhn(16, 10)
+  defp luhn(%{
+         start_code: %{control_bytes: control_bytes} = start_code,
+         data_elements: data_elements
+       }) do
+    luhnsum =
+      [
+        StartCode.render_data(start_code),
+        control_bytes |> Enum.map(&to_hex/1),
+        data_elements |> Enum.map(&DataElement.render_data/1)
+      ]
+      |> Enum.join()
+      |> String.reverse()
+      |> luhn(16)
 
     10
     |> Kernel.-(luhnsum)
