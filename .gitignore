@@ -10,3 +10,4 @@ mix.lock
 .mix
 .bash_history
 .rediscli_history
+.elixir_ls/
