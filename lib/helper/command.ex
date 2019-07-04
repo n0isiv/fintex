@@ -14,50 +14,47 @@ defmodule FinTex.Helper.Command do
     end
   end
 
-
   def validate!(valid_object) do
-    if valid_object |> Vex.valid? do
-      valid_object
-    else
-      raise FinTex.Error, reason: valid_object
-      |> Vex.errors
-      |> Enum.at(0)
-      |> Tuple.to_list
-      |> Enum.drop(1)
-      |> Enum.join(" ")
-    end
+    # if valid_object do
+    #   valid_object
+    # else
+    #   raise FinTex.Error,
+    #     reason:
+    #       valid_object
+    #       |> Vex.errors()
+    #       |> Enum.at(0)
+    #       |> Tuple.to_list()
+    #       |> Enum.drop(1)
+    #       |> Enum.join(" ")
+    # end
+    valid_object
   end
-
 
   def create(module, d = %Dialog{}) do
     module.__struct__.new(module, d)
   end
-
 
   # Replace DKKAU by DIKAUS
   # Replace HKKAZ by KIKAZS
   # Replace HKPIN by HIPINS
   # Replace HKSPA by HISPAS
   def control_structure_to_bpd(name) when is_binary(name) do
-    name |> String.upcase |> String.replace(~r/^(\w)\w(\w{3})$/, "\\1I\\2S")
+    name |> String.upcase() |> String.replace(~r/^(\w)\w(\w{3})$/, "\\1I\\2S")
   end
-
 
   # Replace DIKAUS by DKKAU
   # Replace KIKAZS by HKKAZ
   # Replace HIPINS by HKPIN
   # Replace HISPAS by HKSPA
   def bpd_to_control_structure(name) when is_binary(name) do
-    name |> String.upcase |> String.replace(~r/^(\w)\w(\w{3}).+$/, "\\1K\\2")
+    name |> String.upcase() |> String.replace(~r/^(\w)\w(\w{3}).+$/, "\\1K\\2")
   end
-
 
   def to_messages(feedback_segments) do
     feedback_segments
     |> Stream.flat_map(&Enum.at(&1, -1))
     |> Enum.sort(fn [code1 | _], [code2 | _] -> code1 >= code2 end)
   end
-
 
   def format_messages(feedback_segments) do
     feedback_segments
@@ -68,7 +65,6 @@ defmodule FinTex.Helper.Command do
     end)
   end
 
-
   def check_messages_for_errors(feedback_segments) do
     strings = feedback_segments |> format_messages
     strings |> Enum.each(&warn/1)
@@ -78,7 +74,6 @@ defmodule FinTex.Helper.Command do
       _ -> feedback_segments
     end
   end
-
 
   def dialog_id(response) do
     response[:HNHBK]

@@ -22,21 +22,21 @@ defmodule FinTex.Model.Account do
   alias FinTex.User.FinAccount
 
   @type t :: %__MODULE__{
-    account_number: String.t,
-    subaccount_id: String.t,
-    blz: String.t,
-    bank_name: String.t,
-    currency: String.t,
-    iban: String.t,
-    bic: String.t,
-    name: String.t,
-    owner: String.t,
-    balance: Balance.t,
-    supported_payments: map,
-    supported_tan_schemes: [TANScheme.t],
-    preferred_tan_scheme: String.t,
-    supported_transactions: [String.t]
-  }
+          account_number: String.t(),
+          subaccount_id: String.t(),
+          blz: String.t(),
+          bank_name: String.t(),
+          currency: String.t(),
+          iban: String.t(),
+          bic: String.t(),
+          name: String.t(),
+          owner: String.t(),
+          balance: Balance.t(),
+          supported_payments: map,
+          supported_tan_schemes: [TANScheme.t()],
+          preferred_tan_scheme: String.t(),
+          supported_transactions: [String.t()]
+        }
 
   defstruct [
     :account_number,
@@ -49,40 +49,31 @@ defmodule FinTex.Model.Account do
     :name,
     :owner,
     balance: nil,
-    supported_payments: Map.new,
+    supported_payments: Map.new(),
     supported_tan_schemes: [],
     preferred_tan_scheme: nil,
     supported_transactions: []
   ]
 
-  use Vex.Struct
-
-  validates :blz, blz: [allow_nil: true]
-
-  validates :iban, presence: [if: :bic], iban: [if: :bic]
-
-  validates :bic, presence: [if: :iban], bic: [if: :iban]
-
-  validates :owner, presence: true, length: [in: 1..140]
+  def valid?, do: true
 
   @doc false
-  @spec from_fin_account(FinAccount.t) :: t
+  @spec from_fin_account(FinAccount.t()) :: t
   def from_fin_account(fin_account) do
     %__MODULE__{
-      account_number:         fin_account |> FinAccount.account_number,
-      subaccount_id:          fin_account |> FinAccount.subaccount_id,
-      blz:                    fin_account |> FinAccount.blz,
-      iban:                   fin_account |> FinAccount.iban,
-      bic:                    fin_account |> FinAccount.bic,
-      owner:                  fin_account |> FinAccount.owner
+      account_number: fin_account |> FinAccount.account_number(),
+      subaccount_id: fin_account |> FinAccount.subaccount_id(),
+      blz: fin_account |> FinAccount.blz(),
+      iban: fin_account |> FinAccount.iban(),
+      bic: fin_account |> FinAccount.bic(),
+      owner: fin_account |> FinAccount.owner()
     }
   end
 
-
   def key(%__MODULE__{
-    account_number: account_number,
-    subaccount_id: subaccount_id
-  }) do
+        account_number: account_number,
+        subaccount_id: subaccount_id
+      }) do
     "#{account_number}#{subaccount_id}"
   end
 end
