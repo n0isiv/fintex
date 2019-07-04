@@ -4,7 +4,7 @@ defmodule FinTex.Mixfile do
   def project do
     [
       app: :fintex,
-      version: "0.3.3",
+      version: "0.3.4",
       name: "FinTex",
       source_url: "https://github.com/my-flow/fintex",
       homepage_url: "http://hexdocs.pm/fintex",
